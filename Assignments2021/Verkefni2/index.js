@@ -1,6 +1,6 @@
 
 let allBoards = new Array;
-let div_counter = 0;
+
 
 // function new_div(){
 
@@ -54,7 +54,7 @@ function new_board(id, name, descr){
     
     // button.addEventListener("click", add_task());
     
-    div_counter++;
+
     
 
 
