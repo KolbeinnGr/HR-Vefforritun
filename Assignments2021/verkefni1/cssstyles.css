@@ -1,0 +1,32 @@
+body {
+    font-family: 'Roboto Mono', monospace;
+
+}
+
+
+.flex-navbar {
+    display: flex;
+    background-color: lightblue;
+    border-left: solid 8px #9cc9e0;
+
+    flex-direction: left;
+    height: 1024px;
+    width: 20%;
+
+}
+
+
+
+.navitem {
+    width: 18%;
+    font-size: 3rem;
+}
+
+.navlist {
+    list-style-type: none;
+    
+}
+
+a {
+    color: #4d5256;
+}

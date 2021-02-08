@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Axios example</title>
+    <meta charset="UTF-8">
+
+    <!-- We need to import Axios in order to be able to use the axios object below -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+
+<body>
+    <h1>Axios example</h1>
+    <p>In this example, we perform a GET request to "https://veff-boards-h1.herokuapp.com/api/v1/boards", and a POST
+        request to "https://veff-boards-h1.herokuapp.com/api/v1/boards/1/tasks".
+        You are free to use/adapt these examples to your needs in Project 2.</p>
+    <p>Note 1: Pay close attention to the differences in code: The GET request has no request body (there is no second
+        parameter in axios.get()), and returns an array of elements. The POST request has a request body (an object
+        containing all the required attributes), and returns a single object. Also, the POST request assumes that there
+        is a board with id 0. This is something you maybe should not do in your actual application, but it's sufficient
+        here for testing purposes.</p>
+    <p>Note 2: The server-side applications are deployed to go into sleep if not used for a while. If you happen to send
+        a request the first time in a while (and no other student has done so recently), it will take a while until you
+        get a response.</p>
+    <br>
+    <!-- Clicking this button calls doAjax(), which will do an AJAX request -->
+    <button type="button" onclick="getAllBoards()">Test GET request</button><br />
+    <button type="button" onclick="createNewTask()">Test POST request</button>
+
+    <script>
+        function getAllBoards() {
+            //The URL to which we will send the request
+            var url = 'https://veff-boards-h1.herokuapp.com/api/v1/boards';
+
+            //Perform a GET request to the url
+            axios.get(url)
+                .then(function (response) {
+                    //When successful, print the received data
+                    console.log("Success: ", response.data);
+
+                    //response.data is an array if the request was successful, so you could iterate through it using a for loop.
+                    for (var i=0;i<response.data.length;i++) {
+                        console.log("Board: " + response.data[i].name);
+                    }
+                })
+                .catch(function (error) {
+                    //When unsuccessful, print the error.
+                    console.log(error);
+                })
+                .then(function () {
+                    // This code is always executed, independent of whether the request succeeds or fails.
+                });
+        }
+
+        function createNewTask() {
+            //Prepare the taskName parameter
+            var myTaskName = "testApplicationTask";
+
+            //The URL to which we will send the request
+            var url = 'https://veff-boards-h1.herokuapp.com/api/v1/boards/0/tasks';
+
+            //Perform a POST request to the url, and set the param 'taskName' in the request body to "testApplicationTask"
+            axios.post(url, { taskName: myTaskName })
+                .then(function (response) {
+                    //When successful, print the received data
+                    console.log("Success: ", response.data);
+
+                    //Look at this in the JS console of your browser!
+                    console.log("Successfully created a task with name " + response.data.taskName + " at time " + response.data.dateCreated);
+                })
+                .catch(function (error) {
+                    //When unsuccessful, print the error.
+                    console.log("Error: ", error);
+                })
+                .then(function () {
+                    // This code is always executed, independent of whether the request succeeds or fails.
+                });
+        }
+
+
+
+
+
+    </script>
+</body>
+
+</html>
