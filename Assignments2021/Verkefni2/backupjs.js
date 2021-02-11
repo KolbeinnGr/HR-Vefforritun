@@ -31,10 +31,7 @@ function new_board(id, name, descr){
 
 
     let div = document.createElement("div");
-    
-    div.setAttribute("class", "dragDropContainer");
-    div.addEventListener("dragover", allowDrop)
-    div.addEventListener("drop", drop)
+
     div.setAttribute("class", "boardDiv");
     div.id = "board"+id;
     allBoards.push(id);
@@ -149,9 +146,7 @@ function getAllTasks(boardIDs){
 
 function addTaskToBoard(boardID, taskID, name){
     let new_task = document.createElement('div');
-    new_task.setAttribute("class", "draggable");
-    new_task.addEventListener("dragstart", drag);
-    new_task.draggable = true;
+
     new_task.setAttribute("class", "taskDiv");
     let task_div = document.createElement('div');
     task_div.setAttribute("class", "taskTextDiv")
@@ -221,33 +216,7 @@ function deleteTask(boardID, taskID) {
 
             //Look at this in the JS console of your browser!
             console.log("Successfully deleted task with name " + response.data.taskName + " at time " + response.data.dateCreated);
-            document.getElementById("task" + taskID).remove();
-
-        })
-        .catch(function (error) {
-            //When unsuccessful, print the error.
-            console.log("Error: ", error);
-        })
-        .then(function () {
-            // This code is always executed, independent of whether the request succeeds or fails.
-        });
-}
-
-function moveTask(boardID, taskID) {
-    
-    //The URL to which we will send the request
-    var url = 'https://veff-boards-hmv.herokuapp.com/api/v1/boards/' + boardID + '/tasks/' + taskID;
-
-    //Perform a POST request to the url, and set the param 'taskName' in the request body to "testApplicationTask"
-    axios.patch(url, { })
-        .then(function (response) {
-            //When successful, print the received data
-            console.log("Success: ", response.data);
-
-            //Look at this in the JS console of your browser!
-            console.log("Successfully deleted task with name " + response.data.taskName + " at time " + response.data.dateCreated);
             let task_to_delete = document.getElementById("task" + taskID).remove();
-            addTaskToBoard(response.data.boardId, response.data.id, response.data.taskName)
 
         })
         .catch(function (error) {
@@ -258,29 +227,6 @@ function moveTask(boardID, taskID) {
             // This code is always executed, independent of whether the request succeeds or fails.
         });
 }
-
-
-
-
-function allowDrop(ev) {
-    ev.preventDefault();
-}
-
-
-function drag(event) {
-    let dragItem = event.target;
-
-    event.dataTransfer.setData("text", dragItem.id)
-}
-
-function drop(event) {
-    if (event.target.classname !== "dragDropContainer") return;
-    
-    event.preventDefault();
-    let dragItem = event.target;
-
-}
-
 
 
 getAllBoards()
