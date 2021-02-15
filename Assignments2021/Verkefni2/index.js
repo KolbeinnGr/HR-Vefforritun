@@ -2,46 +2,34 @@
 let allBoards = new Array;
 
 
-// function new_div(){
-
-//     if (div_counter < 5){
-//         let div = document.createElement("div");
-
-//         div.setAttribute("class", "dragDiv");
-//         div.id = 'div' + div_counter;
-//         document.getElementById("master_div").appendChild(div);
-
-        
-//         let button = document.createElement("button");
-//         button.setAttribute("class", "addTask");
-//         button.innerHTML = "Add Task";
-//         document.getElementById(div.id).appendChild(button);
-        
-//         // button.addEventListener("click", add_task());
-        
-//         div_counter++;
-        
-//     }
-
-
-// }
-
-
 function new_board(id, name, descr){
 
 
     let div = document.createElement("div");
     
-    div.setAttribute("class", "dragDropContainer");
-    div.addEventListener("dragover", allowDrop)
-    div.addEventListener("drop", drop)
-    div.setAttribute("class", "boardDiv");
+    div.setAttribute("class", "dragDropContainer boardDiv");
+    div.addEventListener("dragover", allowDrop);
+    div.addEventListener("drop", drop);
+    // div.setAttribute("class", "boardDiv");
     div.id = "board"+id;
+    div.setAttribute("taskID", id)
     allBoards.push(id);
 
+
+    let close_button = document.createElement("button");
+    close_button.setAttribute("class", "deleteBoardButton")
+    close_button.textContent = "X";
+    close_button.addEventListener("click", function(){ deleteBoard(id)});
+    div.appendChild(close_button);
+
+
+    let para = document.createElement("h1");
+    para.setAttribute("class", "boardHeader")
+    let text = document.createTextNode(name);
+    para.appendChild(text);
+    div.appendChild(para);
     
-    
-    div.innerHTML = "<h1>" +name+ "</h1>";
+
     document.getElementById("master_div").appendChild(div);
     let input = document.createElement("input");
     input.type = "text";
@@ -55,17 +43,6 @@ function new_board(id, name, descr){
         })
     document.getElementById(div.id).appendChild(input)
     
-    
-    // let button = document.createElement("button");
-    // button.setAttribute("class", "addTask");
-    // button.innerHTML = "Add Task";
-    // document.getElementById(div.id).appendChild(button);
-    
-    // button.addEventListener("click", add_task());
-    
-
-    
-
 
 }
 
@@ -100,6 +77,58 @@ function getAllBoards() {
         });
 }
 
+function createBoard(boardName) {
+    //The URL to which we will send the request
+    var url = 'https://veff-boards-hmv.herokuapp.com/api/v1/boards/';
+
+    //Perform a POST request to the url, and set the param 'taskName' in the request body to "testApplicationTask"
+    axios.post(url, { name: boardName, description: "" })
+        .then(function (response) {
+            //When successful, print the received data
+            console.log("Success: ", response.data);
+
+            //Look at this in the JS console of your browser!
+            console.log("Successfully created board with name " + response.data.taskName + " at time " + response.data.dateCreated);
+
+            new_board(response.data.id, response.data.name)
+
+        })
+        .catch(function (error) {
+            //When unsuccessful, print the error.
+            console.log("Error: ", error);
+        })
+        .then(function () {
+            // This code is always executed, independent of whether the request succeeds or fails.
+        });
+}
+
+
+function deleteBoard(boardID) {
+    //The URL to which we will send the request
+    var url = 'https://veff-boards-hmv.herokuapp.com/api/v1/boards/' + boardID;
+
+    //Perform a POST request to the url, and set the param 'taskName' in the request body to "testApplicationTask"
+    axios.delete(url, {  })
+        .then(function (response) {
+            //When successful, print the received data
+            console.log("Success: ", response.data);
+
+            //Look at this in the JS console of your browser!
+            console.log("Successfully deleted board with name " + response.data.taskName + " at time " + response.data.dateCreated);
+            document.getElementById("board" + boardID).remove();
+
+        })
+        .catch(function (error) {
+            //When unsuccessful, print the error.
+            console.log("Error: ", error);
+        })
+        .then(function () {
+            // This code is always executed, independent of whether the request succeeds or fails.
+        });
+}
+
+
+
 function getAllTasks(boardIDs){
     //The URL to which we will send the request
     // var url = 'https://veff-boards-h4.herokuapp.com/api/v1/boards/0/tasks';
@@ -117,7 +146,9 @@ function getAllTasks(boardIDs){
             
                 for (var j=0; j< response.data.length;j++){
                     if (response.data.length > 0){
-                        addTaskToBoard(response.data[j].boardId, response.data[j].id, response.data[j].taskName);
+                        if (response.data[j].archived === false){
+                            addTaskToBoard(response.data[j].boardId, response.data[j].id, response.data[j].taskName);
+                    }
                 }
                 //response.data is an array if the request was successful, so you could iterate through it using a for loop.
 
@@ -152,6 +183,7 @@ function addTaskToBoard(boardID, taskID, name){
     new_task.setAttribute("class", "draggable");
     new_task.addEventListener("dragstart", drag);
     new_task.draggable = true;
+
     new_task.setAttribute("class", "taskDiv");
     let task_div = document.createElement('div');
     task_div.setAttribute("class", "taskTextDiv")
@@ -160,13 +192,14 @@ function addTaskToBoard(boardID, taskID, name){
     task_div.appendChild(task_name)
     let task_id = "task" + taskID;
     new_task.setAttribute("id", task_id);
-
+    new_task.setAttribute("taskID", taskID)
     let div_button = document.createElement('div');
     div_button.setAttribute("class","close_div");
     
     let close_button = document.createElement("button");
     close_button.textContent = "X";
-    close_button.addEventListener("click", function(){deleteTask(boardID, taskID)});
+    // close_button.addEventListener("click", function(){deleteTask(boardID, taskID)});
+    close_button.addEventListener("click", function(){archiveTask(boardID, taskID)});
 
     div_button.appendChild(close_button);
 
@@ -176,9 +209,6 @@ function addTaskToBoard(boardID, taskID, name){
     document.getElementById("board" + boardID).appendChild(new_task);
 
 }
-
-
-
 
 
 
@@ -233,6 +263,34 @@ function deleteTask(boardID, taskID) {
         });
 }
 
+function archiveTask(boardID, taskID) {
+
+
+    //The URL to which we will send the request
+    var url = 'https://veff-boards-hmv.herokuapp.com/api/v1/boards/' + boardID + '/tasks/' + taskID;
+
+    //Perform a POST request to the url, and set the param 'taskName' in the request body to "testApplicationTask"
+    axios.patch(url, { archived: true })
+        .then(function (response) {
+            //When successful, print the received data
+            console.log("Success: ", response.data);
+
+            //Look at this in the JS console of your browser!
+            console.log("Successfully archived task with name " + response.data.taskName);
+            document.getElementById("task" + taskID).remove();
+
+        })
+        .catch(function (error) {
+            //When unsuccessful, print the error.
+            console.log("Error: ", error);
+        })
+        .then(function () {
+            // This code is always executed, independent of whether the request succeeds or fails.
+        });
+}
+
+
+
 function moveTask(boardID, taskID) {
     
     //The URL to which we will send the request
@@ -245,8 +303,8 @@ function moveTask(boardID, taskID) {
             console.log("Success: ", response.data);
 
             //Look at this in the JS console of your browser!
-            console.log("Successfully deleted task with name " + response.data.taskName + " at time " + response.data.dateCreated);
-            let task_to_delete = document.getElementById("task" + taskID).remove();
+            console.log("Successfully moved task with name " + response.data.taskName + " at time " + response.data.dateCreated);
+            document.getElementById("task" + taskID).remove();
             addTaskToBoard(response.data.boardId, response.data.id, response.data.taskName)
 
         })
@@ -267,21 +325,39 @@ function allowDrop(ev) {
 }
 
 
+
 function drag(event) {
     let dragItem = event.target;
-
+    dragItem.setAttribute("class", "taskDiv dragging")
+    console.log("DRAGGING")
     event.dataTransfer.setData("text", dragItem.id)
 }
 
-function drop(event) {
-    if (event.target.classname !== "dragDropContainer") return;
-    
-    event.preventDefault();
-    let dragItem = event.target;
 
+function drop(event) {
+if (event.target.classname === "dragDropContainer boardDiv"){ }
+let source = document.getElementsByClassName("taskDiv dragging")
+// source.setAttribute("class", "taskDiv")
+
+console.log("DROPPED")
+console.log(source)
+event.preventDefault();
+let dragItem = event.target;
+console.log(dragItem)
 }
 
 
+function boardCreateInput(){
+    let input2 = document.getElementById("boardNameInput")
+    
+    input2.addEventListener("keypress", function onEvent(event){ 
+        if (event.key === "Enter"){ 
+            createBoard(input2.value); 
+            input2.value = ""}
+    })
+}
+
+boardCreateInput()
 
 getAllBoards()
 
