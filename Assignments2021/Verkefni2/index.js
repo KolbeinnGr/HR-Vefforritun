@@ -1,6 +1,4 @@
 
-// This array is used in the initial run to query each board for it's tasks. All boards are added to this array
-let allBoards = new Array;
 
 
 function new_board(id, name){
@@ -15,8 +13,6 @@ function new_board(id, name){
     div.id = "board"+id;
     div.setAttribute("boardID", id)
     
-    // pushing the board ID to the allboards array
-    allBoards.push(id);
 
     // Board delete button
     let b_delete_button = document.createElement("button");
@@ -65,9 +61,9 @@ function getAllBoards() {
 
             for (var i=0;i<response.data.length;i++) {
                 new_board(response.data[i].id, response.data[i].name);
+                getAllTasks(response.data[i].id)
             }
             
-            getAllTasks(allBoards)
         })
         .catch(function (error) {
             console.log(error);
@@ -118,8 +114,9 @@ function deleteBoard(boardID) {
 
 function getAllTasks(boardIDs){
 
-    for (var i=0;i<allBoards.length;i++) {
-        var url = 'https://veff-boards-hmv.herokuapp.com/api/v1/boards/' + boardIDs[i] + '/tasks';
+    // for (var i=0;i<allBoards.length;i++) {
+    //     var url = 'https://veff-boards-hmv.herokuapp.com/api/v1/boards/' + boardIDs[i] + '/tasks';
+        var url = 'https://veff-boards-hmv.herokuapp.com/api/v1/boards/' + boardIDs + '/tasks';
 
     //Perform a GET request to the url
     axios.get(url)
@@ -140,7 +137,7 @@ function getAllTasks(boardIDs){
 
         })
     }
-}
+// }
 
 
 
