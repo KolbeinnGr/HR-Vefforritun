@@ -1,28 +1,31 @@
 
+// This array is used in the initial run to query each board for it's tasks. All boards are added to this array
 let allBoards = new Array;
 
 
-function new_board(id, name, descr){
+function new_board(id, name){
+    // This function takes in two parameters, id and name and uses that information to add the board to our HTML.
 
-
+    // Board container div
     let div = document.createElement("div");
     
     div.setAttribute("class", "dragDropContainer boardDiv");
     div.addEventListener("dragover", allowDrop);
     div.addEventListener("drop", drop);
-
     div.id = "board"+id;
     div.setAttribute("boardID", id)
+    
+    // pushing the board ID to the allboards array
     allBoards.push(id);
 
+    // Board delete button
+    let b_delete_button = document.createElement("button");
+    b_delete_button.setAttribute("class", "deleteBoardButton")
+    b_delete_button.textContent = "X";
+    b_delete_button.addEventListener("click", function(){ deleteBoard(id)});
+    div.appendChild(b_delete_button);
 
-    let close_button = document.createElement("button");
-    close_button.setAttribute("class", "deleteBoardButton")
-    close_button.textContent = "X";
-    close_button.addEventListener("click", function(){ deleteBoard(id)});
-    div.appendChild(close_button);
-
-
+    // Board name
     let para = document.createElement("h1");
     para.setAttribute("class", "boardHeader")
     let text = document.createTextNode(name);
@@ -30,7 +33,8 @@ function new_board(id, name, descr){
     div.appendChild(para);
     
 
-    document.getElementById("master_div").appendChild(div);
+    
+    // Task creation input field
     let input = document.createElement("input");
     input.type = "text";
     input.setAttribute("class", "taskNameInput")
@@ -41,6 +45,9 @@ function new_board(id, name, descr){
             createNewTask(id, input.value); 
             input.value = ""}
         })
+        
+
+    document.getElementById("master_div").appendChild(div);
     document.getElementById(div.id).appendChild(input)
     
 
@@ -55,94 +62,69 @@ function getAllBoards() {
     //Perform a GET request to the url
     axios.get(url)
         .then(function (response) {
-            //When successful, print the received data
-            // console.log("Success: ", response.data);
 
-            //response.data is an array if the request was successful, so you could iterate through it using a for loop.
             for (var i=0;i<response.data.length;i++) {
                 new_board(response.data[i].id, response.data[i].name);
-                
-                
             }
-
+            
             getAllTasks(allBoards)
-
         })
         .catch(function (error) {
-            //When unsuccessful, print the error.
             console.log(error);
         })
-        .then(function () {
-            // This code is always executed, independent of whether the request succeeds or fails.
-        });
+
 }
 
 function createBoard(boardName) {
+    // This function only takes in one parameter - the board name and uses that information to contact the back-end. 
+    // If successful it creates the board
+
     //The URL to which we will send the request
     var url = 'https://veff-boards-hmv.herokuapp.com/api/v1/boards/';
 
-    //Perform a POST request to the url, and set the param 'taskName' in the request body to "testApplicationTask"
     axios.post(url, { name: boardName, description: "" })
         .then(function (response) {
-            //When successful, print the received data
-            // console.log("Success: ", response.data);
-
-            //Look at this in the JS console of your browser!
-            // console.log("Successfully created board with name " + response.data.taskName + " at time " + response.data.dateCreated);
-
+            
             new_board(response.data.id, response.data.name)
 
         })
         .catch(function (error) {
-            //When unsuccessful, print the error.
             console.log("Error: ", error);
         })
-        .then(function () {
-            // This code is always executed, independent of whether the request succeeds or fails.
-        });
+
 }
 
 
 function deleteBoard(boardID) {
-    //The URL to which we will send the request
-    var url = 'https://veff-boards-hmv.herokuapp.com/api/v1/boards/' + boardID;
+    // This function takes in a board id which it uses to contact the back-end and sends a delete request to that URL.
+    // If successful it deletes the board, if not nothing happens
 
-    //Perform a POST request to the url, and set the param 'taskName' in the request body to "testApplicationTask"
+    var url = 'https://veff-boards-hmv.herokuapp.com/api/v1/boards/' + boardID;
+    
     axios.delete(url, {  })
         .then(function (response) {
-            //When successful, print the received data
-            // console.log("Success: ", response.data);
 
-            //Look at this in the JS console of your browser!
-            // console.log("Successfully deleted board with name " + response.data.taskName + " at time " + response.data.dateCreated);
             document.getElementById("board" + boardID).remove();
 
         })
         .catch(function (error) {
-            //When unsuccessful, print the error.
-            console.log("Error: ", error);
+
+            
         })
-        .then(function () {
-            // This code is always executed, independent of whether the request succeeds or fails.
-        });
+
 }
 
 
 
 function getAllTasks(boardIDs){
-    //The URL to which we will send the request
-    // var url = 'https://veff-boards-h4.herokuapp.com/api/v1/boards/0/tasks';
-    
+
     for (var i=0;i<allBoards.length;i++) {
         var url = 'https://veff-boards-hmv.herokuapp.com/api/v1/boards/' + boardIDs[i] + '/tasks';
-
-
 
     //Perform a GET request to the url
     axios.get(url)
         .then(function (response) {
             //When successful, print the received data
-            // console.log("Success: tasks", response.data);
             
                 for (var j=0; j< response.data.length;j++){
                     if (response.data.length > 0){
@@ -150,14 +132,12 @@ function getAllTasks(boardIDs){
                             addTaskToBoard(response.data[j].boardId, response.data[j].id, response.data[j].taskName);
                     }
                 }
-                //response.data is an array if the request was successful, so you could iterate through it using a for loop.
 
                 }
             }
         )
         .catch(function (error) {
-            //When unsuccessful, print the error.
-            // console.log(error);
+
         })
     }
 }
@@ -165,29 +145,36 @@ function getAllTasks(boardIDs){
 
 
 function addTaskToBoard(boardID, taskID, name){
+
+    // Task container div
     let new_task = document.createElement('div');
     new_task.setAttribute("class", "draggable");
     new_task.addEventListener("dragstart", drag);
     new_task.draggable = true;
 
     new_task.setAttribute("class", "taskDiv");
+    
+    // Task name container div
     let task_div = document.createElement('div');
     task_div.setAttribute("class", "taskTextDiv")
     new_task.setAttribute("boardID", boardID)
     let task_name = document.createTextNode(name);
     task_div.appendChild(task_name)
+    
     let task_id = "task" + taskID;
     new_task.setAttribute("id", task_id);
     new_task.setAttribute("taskID", taskID)
+    
+    // Task delete button contain div
     let div_button = document.createElement('div');
     div_button.setAttribute("class","close_div");
     
-    let close_button = document.createElement("button");
-    close_button.textContent = "X";
-    // close_button.addEventListener("click", function(){deleteTask(boardID, taskID)});
-    close_button.addEventListener("click", function(){archiveTask(boardID, taskID)});
+    // Task delete button div
+    let t_delete_button = document.createElement("button");
+    t_delete_button.textContent = "X";
+    t_delete_button.addEventListener("click", function(){archiveTask(boardID, taskID)});
 
-    div_button.appendChild(close_button);
+    div_button.appendChild(t_delete_button);
 
 
     new_task.appendChild(task_div);
@@ -208,17 +195,15 @@ function createNewTask(boardID, taskText) {
     //Perform a POST request to the url, and set the param 'taskName' in the request body to "testApplicationTask"
     axios.post(url, { taskName: myTaskName })
         .then(function (response) {
-
+            // If successful it adds the task to the correct board in our HTML
             addTaskToBoard(response.data.boardId, response.data.id, response.data.taskName)
 
         })
         .catch(function (error) {
-            //When unsuccessful, print the error.
+
             console.log("Error: ", error);
         })
-        .then(function () {
-            // This code is always executed, independent of whether the request succeeds or fails.
-        });
+
 }
 
 
@@ -229,14 +214,9 @@ function deleteTask(boardID, taskID) {
     //The URL to which we will send the request
     var url = 'https://veff-boards-hmv.herokuapp.com/api/v1/boards/' + boardID + '/tasks/' + taskID;
 
-    //Perform a POST request to the url, and set the param 'taskName' in the request body to "testApplicationTask"
     axios.delete(url, {  })
         .then(function (response) {
-            //When successful, print the received data
-            // console.log("Success: ", response.data);
-
-            //Look at this in the JS console of your browser!
-            // console.log("Successfully deleted task with name " + response.data.taskName + " at time " + response.data.dateCreated);
+            
             document.getElementById("task" + taskID).remove();
 
         })
@@ -244,9 +224,7 @@ function deleteTask(boardID, taskID) {
             //When unsuccessful, print the error.
             console.log("Error: ", error);
         })
-        .then(function () {
-            // This code is always executed, independent of whether the request succeeds or fails.
-        });
+
 }
 
 function archiveTask(boardID, taskID) {
@@ -255,43 +233,33 @@ function archiveTask(boardID, taskID) {
     //The URL to which we will send the request
     var url = 'https://veff-boards-hmv.herokuapp.com/api/v1/boards/' + boardID + '/tasks/' + taskID;
 
-    //Perform a POST request to the url, and set the param 'taskName' in the request body to "testApplicationTask"
+    // This axios request attempts to archive the selected task
+
     axios.patch(url, { archived: true })
         .then(function (response) {
-            //When successful, print the received data
-            // console.log("Success: ", response.data);
-
-            //Look at this in the JS console of your browser!
-            // console.log("Successfully archived task with name " + response.data.taskName);
+            // If successful it will remove the task from our HTML
             document.getElementById("task" + taskID).remove();
 
         })
         .catch(function (error) {
-            //When unsuccessful, print the error.
             console.log("Error: ", error);
         })
-        .then(function () {
-            // This code is always executed, independent of whether the request succeeds or fails.
-        });
+
 }
 
 
 
 function moveTask(boardID, taskID, newBoardID) {
-    
+    // This function takes in three parameters which it uses to move task from one board to another.
+    // If successful it removes the original task and adds it again from the response at the new location
+
     //The URL to which we will send the request
     var url = 'https://veff-boards-hmv.herokuapp.com/api/v1/boards/' + boardID + '/tasks/' + taskID;
-    // var url = 'https://veff-boards-hmv.herokuapp.com/api/v1/boards/0/tasks/2';
-    //Perform a POST request to the url, and set the param 'taskName' in the request body to "testApplicationTask"
     if (boardID === newBoardID) return;
 
     axios.patch(url, { boardId: String(newBoardID) })
         .then(function (response) {
-            //When successful, print the received data
-            // console.log("Success: ", response.data);
 
-            //Look at this in the JS console of your browser!
-            // console.log("Successfully moved task with name " + response.data.taskName + " at time " + response.data.dateCreated);
             document.getElementById("task" + taskID).remove();
             addTaskToBoard(response.data.boardId, response.data.id, response.data.taskName)
 
@@ -300,9 +268,7 @@ function moveTask(boardID, taskID, newBoardID) {
             //When unsuccessful, print the error.
             console.log("Error: ", error);
         })
-        .then(function () {
-            // This code is always executed, independent of whether the request succeeds or fails.
-        });
+
 }
 
 
@@ -313,42 +279,35 @@ function allowDrop(ev) {
 }
 
 
-
 function drag(event) {
+
     let dragItem = event.target;
     dragItem.setAttribute("class", "taskDiv dragging")
-    // console.log("DRAGGING")
+
     event.dataTransfer.setData("text", dragItem.id)
 }
 
 
 function drop(event) {
-    
+    // This try / catch error checking was added due to errors when object was dropped on an element not with a class name
     try{
+
         let dragItem_ele = event.target;
         let source_ele = document.getElementsByClassName("taskDiv dragging");
         let dragItem = document.getElementById(dragItem_ele.id);
 
-        // console.log(dragItem.getAttribute("class"))
-
+        // Checking if we are dropping the item at a non dragDropcontainer, it will end the function if it returns true
         if (dragItem.getAttribute("class") !== "dragDropContainer boardDiv")return; 
 
-        // console.log("Event target class = " + event.target.id)
 
         let source = document.getElementById(source_ele[0].id);
-        // console.log("DROPPED");
-        // console.log(source.getAttribute("boardID"));
+
         event.preventDefault();
 
-        // let dragItem = document.getElementById(dragItem_ele.id)
-        // console.log(dragItem)
-
-        // console.log(dragItem.id[5]);
-        // console.log(dragItem.getAttribute("taskid"));
         let taskIDstr = source.id
         moveTask(source.getAttribute("boardID"), taskIDstr.substring(4, taskIDstr.length) , dragItem.getAttribute("boardID"));
+
     }
-    
 
     catch(err){
         return;
@@ -356,8 +315,40 @@ function drop(event) {
 }
 
 
+// DROP TEST
+// function drop(event) {
+//     // This try / catch error checking was added due to errors when object was dropped on an element not with a class name
+//     try{
+
+//         let dragItem_ele = event.target;
+//         let source_ele = document.getElementsByClassName("taskDiv dragging");
+//         let dragItem = document.getElementById(dragItem_ele.id);
+
+//         // Checking if we are dropping the item at a non dragDropcontainer, it will end the function if it returns true
+//         // if (dragItem.getAttribute("class") !== "dragDropContainer boardDiv")return; 
+//         if (event.target.getAttribute("class") === "taskTextDiv" || event.target.getAttribute("class") === "dragDropContainer boardDiv" || event.target.getAttribute("class") === "close_div" || event.target.getAttribute("class") === "taskDiv"){
+//             let destination = event.target.closest("dragDropContainer boardDiv")
+
+//             let source = document.getElementById(source_ele[0].id);
+
+//             event.preventDefault();
+
+//             let taskIDstr = source.id
+//             // moveTask(source.getAttribute("boardID"), taskIDstr.substring(4, taskIDstr.length) , dragItem.getAttribute("boardID"));
+//             moveTask(source.getAttribute("boardID"), taskIDstr.substring(4, taskIDstr.length) , destination.getAttribute("boardID"));
+//         }
+//     }
+
+//     catch(err){
+//         console.log(err)
+//     }
+// }
+
+
+
 
 function boardCreateInput(){
+    // This is the function to add an event listener to the Board input field text box
     let input2 = document.getElementById("boardNameInput")
     
     input2.addEventListener("keypress", function onEvent(event){ 
@@ -366,6 +357,8 @@ function boardCreateInput(){
             input2.value = ""}
     })
 }
+
+// Inital function calls that are needed to render the page at load.
 
 boardCreateInput()
 
