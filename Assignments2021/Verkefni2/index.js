@@ -10,9 +10,9 @@ function new_board(id, name, descr){
     div.setAttribute("class", "dragDropContainer boardDiv");
     div.addEventListener("dragover", allowDrop);
     div.addEventListener("drop", drop);
-    // div.setAttribute("class", "boardDiv");
+
     div.id = "board"+id;
-    div.setAttribute("taskID", id)
+    div.setAttribute("boardID", id)
     allBoards.push(id);
 
 
@@ -56,7 +56,7 @@ function getAllBoards() {
     axios.get(url)
         .then(function (response) {
             //When successful, print the received data
-            console.log("Success: ", response.data);
+            // console.log("Success: ", response.data);
 
             //response.data is an array if the request was successful, so you could iterate through it using a for loop.
             for (var i=0;i<response.data.length;i++) {
@@ -85,10 +85,10 @@ function createBoard(boardName) {
     axios.post(url, { name: boardName, description: "" })
         .then(function (response) {
             //When successful, print the received data
-            console.log("Success: ", response.data);
+            // console.log("Success: ", response.data);
 
             //Look at this in the JS console of your browser!
-            console.log("Successfully created board with name " + response.data.taskName + " at time " + response.data.dateCreated);
+            // console.log("Successfully created board with name " + response.data.taskName + " at time " + response.data.dateCreated);
 
             new_board(response.data.id, response.data.name)
 
@@ -111,10 +111,10 @@ function deleteBoard(boardID) {
     axios.delete(url, {  })
         .then(function (response) {
             //When successful, print the received data
-            console.log("Success: ", response.data);
+            // console.log("Success: ", response.data);
 
             //Look at this in the JS console of your browser!
-            console.log("Successfully deleted board with name " + response.data.taskName + " at time " + response.data.dateCreated);
+            // console.log("Successfully deleted board with name " + response.data.taskName + " at time " + response.data.dateCreated);
             document.getElementById("board" + boardID).remove();
 
         })
@@ -142,7 +142,7 @@ function getAllTasks(boardIDs){
     axios.get(url)
         .then(function (response) {
             //When successful, print the received data
-            console.log("Success: tasks", response.data);
+            // console.log("Success: tasks", response.data);
             
                 for (var j=0; j< response.data.length;j++){
                     if (response.data.length > 0){
@@ -163,20 +163,6 @@ function getAllTasks(boardIDs){
 }
 
 
-// function addTaskToBoard(boardID, taskID, name){
-//     let new_task = document.createElement('div');
-//     let task_name = document.createTextNode(name)
-//     new_task.setAttribute("class", "taskDiv")
-    
-//     let task_id = "task" + taskID
-//     new_task.setAttribute("id", task_id)
-
-//     new_task.appendChild(task_name)
-    
-//     document.getElementById("board" + boardID).appendChild(new_task)
-
-// }
-
 
 function addTaskToBoard(boardID, taskID, name){
     let new_task = document.createElement('div');
@@ -187,7 +173,7 @@ function addTaskToBoard(boardID, taskID, name){
     new_task.setAttribute("class", "taskDiv");
     let task_div = document.createElement('div');
     task_div.setAttribute("class", "taskTextDiv")
-
+    new_task.setAttribute("boardID", boardID)
     let task_name = document.createTextNode(name);
     task_div.appendChild(task_name)
     let task_id = "task" + taskID;
@@ -247,10 +233,10 @@ function deleteTask(boardID, taskID) {
     axios.delete(url, {  })
         .then(function (response) {
             //When successful, print the received data
-            console.log("Success: ", response.data);
+            // console.log("Success: ", response.data);
 
             //Look at this in the JS console of your browser!
-            console.log("Successfully deleted task with name " + response.data.taskName + " at time " + response.data.dateCreated);
+            // console.log("Successfully deleted task with name " + response.data.taskName + " at time " + response.data.dateCreated);
             document.getElementById("task" + taskID).remove();
 
         })
@@ -273,10 +259,10 @@ function archiveTask(boardID, taskID) {
     axios.patch(url, { archived: true })
         .then(function (response) {
             //When successful, print the received data
-            console.log("Success: ", response.data);
+            // console.log("Success: ", response.data);
 
             //Look at this in the JS console of your browser!
-            console.log("Successfully archived task with name " + response.data.taskName);
+            // console.log("Successfully archived task with name " + response.data.taskName);
             document.getElementById("task" + taskID).remove();
 
         })
@@ -291,19 +277,21 @@ function archiveTask(boardID, taskID) {
 
 
 
-function moveTask(boardID, taskID) {
+function moveTask(boardID, taskID, newBoardID) {
     
     //The URL to which we will send the request
     var url = 'https://veff-boards-hmv.herokuapp.com/api/v1/boards/' + boardID + '/tasks/' + taskID;
-
+    // var url = 'https://veff-boards-hmv.herokuapp.com/api/v1/boards/0/tasks/2';
     //Perform a POST request to the url, and set the param 'taskName' in the request body to "testApplicationTask"
-    axios.patch(url, { })
+    if (boardID === newBoardID) return;
+
+    axios.patch(url, { boardId: String(newBoardID) })
         .then(function (response) {
             //When successful, print the received data
-            console.log("Success: ", response.data);
+            // console.log("Success: ", response.data);
 
             //Look at this in the JS console of your browser!
-            console.log("Successfully moved task with name " + response.data.taskName + " at time " + response.data.dateCreated);
+            // console.log("Successfully moved task with name " + response.data.taskName + " at time " + response.data.dateCreated);
             document.getElementById("task" + taskID).remove();
             addTaskToBoard(response.data.boardId, response.data.id, response.data.taskName)
 
@@ -329,22 +317,44 @@ function allowDrop(ev) {
 function drag(event) {
     let dragItem = event.target;
     dragItem.setAttribute("class", "taskDiv dragging")
-    console.log("DRAGGING")
+    // console.log("DRAGGING")
     event.dataTransfer.setData("text", dragItem.id)
 }
 
 
 function drop(event) {
-if (event.target.classname === "dragDropContainer boardDiv"){ }
-let source = document.getElementsByClassName("taskDiv dragging")
-// source.setAttribute("class", "taskDiv")
+    
+    try{
+        let dragItem_ele = event.target;
+        let source_ele = document.getElementsByClassName("taskDiv dragging");
+        let dragItem = document.getElementById(dragItem_ele.id);
 
-console.log("DROPPED")
-console.log(source)
-event.preventDefault();
-let dragItem = event.target;
-console.log(dragItem)
+        // console.log(dragItem.getAttribute("class"))
+
+        if (dragItem.getAttribute("class") !== "dragDropContainer boardDiv")return; 
+
+        // console.log("Event target class = " + event.target.id)
+
+        let source = document.getElementById(source_ele[0].id);
+        // console.log("DROPPED");
+        // console.log(source.getAttribute("boardID"));
+        event.preventDefault();
+
+        // let dragItem = document.getElementById(dragItem_ele.id)
+        // console.log(dragItem)
+
+        // console.log(dragItem.id[5]);
+        // console.log(dragItem.getAttribute("taskid"));
+        let taskIDstr = source.id
+        moveTask(source.getAttribute("boardID"), taskIDstr.substring(4, taskIDstr.length) , dragItem.getAttribute("boardID"));
+    }
+    
+
+    catch(err){
+        return;
+    }
 }
+
 
 
 function boardCreateInput(){
