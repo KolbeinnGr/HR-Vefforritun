@@ -206,16 +206,23 @@ app.delete("/api/v1/boards/:Id/tasks/:taskId", function (req, res) {
     let ret_val = undefined
     for (var i = 0; i < tasks.length; i++) {
         if (tasks[i].id === task_ID) {
-            ret_val = tasks[i]
-            tasks.splice(i, 1)
 
-            for (var j = 0; j < boards.length; i++) {
-                if (boards[j] === board_ID) {
-                    boards[j].tasks.splice(j, 1) // ???????????????
-                    break;
+
+            for (var j = 0; j < boards.length; j++) {
+                if (boards[j].id === board_ID) {
+                    // boards[j].tasks.splice(j, 1) // ???????????????
+                    for (var y = 0; y < boards[j].tasks.length; y++){
+                        if (boards[j].tasks[y] == task_ID){
+                            boards[j].tasks.splice[y, 1]
+                            ret_val = tasks[i]
+                            tasks.splice(i, 1)
+                            return res.status(200).json(ret_val)
+                        }
+                    }
+                    
                 }
             }
-            break;
+            
         }
     }
     if (ret_val !== undefined){
@@ -269,6 +276,10 @@ app.patch("/api/v1/boards/:Id/tasks/:taskId", function (req, res) {
     return res.status(400).json({ "message": "At least one parameter is required. boardId, taskName or archived." })
 })
 
+// Unsupported method handling
+app.all("/*", function (req, res){
+    return res.status(405).json({"message": req.method + " method is not supported at " + req.url})
+})
 
 //Start the server
 app.listen(port, () => {
