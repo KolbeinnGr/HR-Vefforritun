@@ -20,7 +20,6 @@ app.use(cors());
 
 //The following is an example of an array of three boards. 
 let board_counter = 3;
-
 let task_counter = 4;
 
 var boards = [
@@ -80,6 +79,7 @@ app.get("/api/v1/boards/:Id/tasks", function (req, res) {
     let ret_arr = [];
     let board_ID = req.params.Id;
     let board_found = false
+    let sort_method = req.query.sort
 
     for (var j = 0; j < boards.length; j++){
         if (board_ID === boards[j].id){
@@ -93,6 +93,17 @@ app.get("/api/v1/boards/:Id/tasks", function (req, res) {
                 
                 ret_arr.push(tasks[i]);
         }};
+
+        if (sort_method === "taskName"){
+            ret_arr.sort((a, b) => (a.taskName > b.taskName) ? 1 : -1);
+        }
+        else if (sort_method === "dateCreated"){
+            ret_arr.sort((a, b) => (a.dateCreated > b.dateCreated) ? 1 : -1);
+        }
+        else if (sort_method === "id"){
+            ret_arr.sort((a, b) => (a.id > b.id) ? 1 : -1);
+        };
+
         return res.status(200).json(ret_arr);
     }
     return res.status(404).json({ "message": "The board with ID " + board_ID + " was not found."});
@@ -149,7 +160,19 @@ app.delete("/api/v1/boards/:Id", function (req, res){
 // Delete all boards
 app.delete("/api/v1/boards", function (req, res){
     
-    let ret_arr = boards
+    let ret_arr = []
+    // Iterate over each board first, then over each task and append tasks to the array with the same board ID.
+    for (var i = 0; i < boards.length; i++){
+        let tasks_arr = []
+        for (var y = 0; y < tasks.length; y++){
+            
+            if (boards[i].id == tasks[y].boardId) {
+                    tasks_arr.push(tasks[y]);
+            };
+        }
+        ret_arr.push({ id: boards[i].id, name: boards[i].name, description: boards[i].description, tasks: tasks_arr })
+    }
+
     boards = []
     tasks = []
     return res.status(200).json(ret_arr)
@@ -168,8 +191,10 @@ app.get("/api/v1/boards/:Id/tasks/:taskId", function (req, res){
                     return res.status(200).json(tasks[y])
                 }
             }
+            // error if board is found but the task is not
             return res.status(404).json({"message": "Task " + task_ID + " was not found."})
         }
+        // error if the board is not found
         return res.status(404).json({"message": "Board with ID " + board_ID + " was not found."})
     }
 
@@ -268,7 +293,6 @@ app.patch("/api/v1/boards/:Id/tasks/:taskId", function (req, res) {
                     tasks[i].taskName = req.body.taskName
                 }
                 ret_val = tasks[i]
-
             }
         }
         return res.status(201).json(ret_val);
